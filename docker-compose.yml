@@ -1,0 +1,47 @@
+version: '2.2'
+
+services:
+  dbapi:
+    build: dbapi
+    init: true
+    volumes:
+    - dbapi_mysql:/var/lib/mysql
+    environment:
+    - DESECSTACK_IPV4_REAR_PREFIX16=172.19
+    - DESECSTACK_DBAPI_PASSWORD_desec=test123
+    networks:
+    - rearapi_dbapi
+    logging:
+      driver: "syslog"
+      options:
+        tag: "desec/dbapi"
+    restart: unless-stopped
+
+  api:
+    build: api
+    init: true
+    depends_on:
+    - dbapi
+    environment:
+    - DESECSTACK_DBAPI_PASSWORD_desec=test123
+    networks:
+    - rearapi_dbapi
+    logging:
+      driver: "syslog"
+      options:
+        tag: "desec/api"
+    restart: unless-stopped
+
+
+volumes:
+  dbapi_mysql:
+
+networks:
+  rearapi_dbapi:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.19.5.0/24
+        gateway: 172.19.5.1
+
